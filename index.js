@@ -52,6 +52,13 @@ async function run() {
             res.send(result)
     })
 
+    app.post('/services',async(req,res)=>{
+      const newService = req.body;
+      console.log(newService);
+      const result = await servicesCollection.insertOne(newService)
+      res.send(result)
+    })
+
     
   } finally {
     // Ensures that the client will close when you finish/error

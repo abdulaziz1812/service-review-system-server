@@ -58,7 +58,22 @@ async function run() {
       const result = await servicesCollection.insertOne(newService)
       res.send(result)
     })
+    
+    app.get('/my-services',async(req,res)=>{
+      const email = req.query.email
+      console.log(email);
+      const query = { email :email }
+      const result = await servicesCollection.find(query).toArray()
+      res.send(result)
+    })
 
+    app.delete("/services/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await servicesCollection.deleteOne(query);
+      res.send(result);
+    });
+    
     
   } finally {
     // Ensures that the client will close when you finish/error

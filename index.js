@@ -144,6 +144,28 @@ async function run() {
       const result = await reviewCollection.deleteOne(query);
       res.send(result);
     });
+
+    app.put("/reviews/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updatedReview = req.body;
+      const review = {
+        $set: {
+          text: updatedReview.text,
+          date: updatedReview.date,
+          rating: updatedReview.rating,
+          
+        },
+      };
+      const result = await reviewCollection.updateOne(
+        filter,
+        review,
+        options
+      );
+      res.send(result);
+    });
+
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();

@@ -107,7 +107,6 @@ async function run() {
 
     app.post("/review", async (req, res) => {
       const newReview = req.body;
-      console.log(newReview);
       const result = await reviewCollection.insertOne(newReview);
       res.send(result);
     });
@@ -123,10 +122,28 @@ async function run() {
       const email = req.query.email;
       const query = { email: email };
       const result = await reviewCollection.find(query).toArray();
+
+      for (const review of result) {
+        
+        const query1 = {_id : new ObjectId(review.serviceId)}
+        const service =await servicesCollection.findOne(query1)
+        if(service){
+          review.serviceTitle = service.serviceTitle
+          review.serviceImage = service.serviceImage
+          review.companyName = service.companyName
+        }
+        console.log(review);
+      }
+
       res.send(result);
     });
 
-    
+    app.delete("/reviews/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await reviewCollection.deleteOne(query);
+      res.send(result);
+    });
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();

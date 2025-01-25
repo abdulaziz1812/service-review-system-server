@@ -1,15 +1,20 @@
+require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 const app = express();
-require("dotenv").config();
 const port = process.env.PORT || 5000;
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "https://service-review-system-a5c49.web.app",
+      "https://service-review-system-a5c49.firebaseapp.com",
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
@@ -19,7 +24,7 @@ app.use(cookieParser());
 
 
 const verifyToken = (req, res, next) => {
-  console.log("veri", req.cookies);
+ 
   const token = req.cookies?.token;
 
   if (!token) {
@@ -49,12 +54,12 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+    // await client.db("admin").command({ ping: 1 });
+    // console.log(
+    //   "Pinged your deployment. You successfully connected to MongoDB!"
+    // );
 
     // Auth related APIs
 
@@ -64,7 +69,8 @@ async function run() {
       res
         .cookie("token", token, {
           httpOnly: true,
-          secure: false,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         })
         .send({ success: true });
     });
@@ -73,7 +79,8 @@ async function run() {
       res
         .clearCookie("token", {
           httpOnly: true,
-          secure: false,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         })
         .send({ success: true });
     });
@@ -112,13 +119,10 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/my-services", verifyToken, async (req, res) => {
+    app.get("/my-services", async (req, res) => {
       const email = req.query.email;
       const query = { email: email };
-
-      if (req.user.email !== req.query.email) {
-        return res.status(403).send({ message: "forbidden access" });
-      }
+      
       const result = await servicesCollection.find(query).toArray();
       res.send(result);
     });
